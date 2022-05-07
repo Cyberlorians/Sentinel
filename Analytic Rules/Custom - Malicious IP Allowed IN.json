@@ -8,19 +8,19 @@
     },
     "resources": [
         {
-            "id": "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/alertRules/0e082420-234c-4688-b155-f348b56da55c')]",
-            "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/0e082420-234c-4688-b155-f348b56da55c')]",
+            "id": "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/alertRules/b39485d6-024b-4bda-9a41-6441c8bbec4a')]",
+            "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/b39485d6-024b-4bda-9a41-6441c8bbec4a')]",
             "type": "Microsoft.OperationalInsights/workspaces/providers/alertRules",
             "kind": "Scheduled",
             "apiVersion": "2021-10-01-preview",
             "properties": {
-                "displayName": "Custom - Malicous IP Allowed IN",
+                "displayName": "Custom - Malicious IP Allowed IN",
                 "description": "",
-                "severity": "Medium",
+                "severity": "High",
                 "enabled": true,
                 "query": "AzureNetworkAnalytics_CL\r\n| where SubType_s == 'FlowLog'\r\n    and FlowType_s == 'MaliciousFlow'\r\n    and (FASchemaVersion_s == '1' or FASchemaVersion_s == '2')\r\n| where AllowedInFlows_d == 1\r\n| project\r\n    AllowedInFlows_d,\r\n    Country_s,\r\n    //FlowDirection_s,\r\n    FlowType_s,\r\n    //FlowCount = max_of(AllowedInFlows_d + DeniedInFlows_d, AllowedOutFlows_d + DeniedOutFlows_d),\r\n    //AllowedInFlows_d,\r\n    //DeniedInFlows_d,\r\n    //AllowedOutFlows_d,\r\n    //DeniedOutFlows_d,\r\n    //InboundBytes_d,\r\n    //OutboundBytes_d,\r\n    //InboundPackets_d,\r\n    //OutboundPackets_d,\r\n    SrcIP_s,\r\n    DestIP_s,\r\n    L4Protocol_s,\r\n    L7Protocol_s,\r\n    DestPort_d,\r\n    NIC1_s,\r\n    NIC2_s,\r\n    VM1_s,\r\n    VM2_s,\r\n    Subnet1_s,\r\n    Subnet2_s,\r\n    Region1_s,\r\n    Region2_s,\r\n    Subscription1_g,\r\n    Subscription2_g,\r\n    NSGRule_s,\r\n    NSGList_s,\r\n    TimeGenerated,\r\n    TimeProcessed_t\r\n\r\n\r\n",
-                "queryFrequency": "PT6H",
-                "queryPeriod": "PT6H",
+                "queryFrequency": "PT5M",
+                "queryPeriod": "PT5H",
                 "triggerOperator": "GreaterThan",
                 "triggerThreshold": 0,
                 "suppressionDuration": "PT5H",
@@ -62,23 +62,9 @@
                             }
                         ]
                     }
-                ]
+                ],
+                "sentinelEntitiesMappings": null
             }
-        },
-        {
-            "id": "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/alertRules/0e082420-234c-4688-b155-f348b56da55c/actions/1e0a703ead5b43899a760b34f65d7f27')]",
-            "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/0e082420-234c-4688-b155-f348b56da55c/1e0a703ead5b43899a760b34f65d7f27')]",
-            "type": "Microsoft.OperationalInsights/workspaces/providers/alertRules/actions",
-            "apiVersion": "2021-10-01-preview",
-            "properties": {
-                "ruleId": "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/alertRules/0e082420-234c-4688-b155-f348b56da55c')]",
-                "triggerUri": "[listCallbackURL(concat('/subscriptions/8851ea18-313f-4f19-acf9-92936ef14c51/resourceGroups/NCPS-MAGVA-CEWAH-PROD-RG-SENTINEL/providers/Microsoft.Logic/workflows/IP2GEO2Comments','/triggers/When_a_response_to_an_Azure_Sentinel_alert_is_triggered'),'2016-06-01').value]",
-                "logicAppResourceId": "/subscriptions/8851ea18-313f-4f19-acf9-92936ef14c51/resourceGroups/NCPS-MAGVA-CEWAH-PROD-RG-SENTINEL/providers/Microsoft.Logic/workflows/IP2GEO2Comments",
-                "operatesOn": "Alert"
-            },
-            "dependsOn": [
-                "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/alertRules/0e082420-234c-4688-b155-f348b56da55c')]"
-            ]
         }
     ]
 }
