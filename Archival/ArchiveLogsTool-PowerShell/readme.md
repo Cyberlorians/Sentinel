@@ -15,7 +15,7 @@
    Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass  
    ```  
 3. Script prompts you to enter your Azure Tenant Id AND Azure Environment. Support for AzureCloud or AzureUSGovernment are now supported in the script with device login. 
-At Prompt enter: AzureCloud or AzureUSGoverment.
+##At Prompt enter: AzureCloud or AzureUSGoverment.##
 
 4. You are prompted to authenticate with credentials, once the user is authenticated, you will be prompted to choose 
 	- Subscription
