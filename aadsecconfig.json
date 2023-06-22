@@ -609,7 +609,7 @@
         "ControlName": "External Identities",
         "Description": "Controls whether external users can leave an Azure AD tenant via self-service controls",
         "GraphEndpoint": "externalIdentitiesPolicy",
-        "GraphUri": "https://graph.microsoft.us/beta/policies/externalIdentitiesPolicy",
+        "GraphUri": "https://graph.microsoft.us/v1.0/policies/externalIdentitiesPolicy",
         "GraphDocsUrl": "https://learn.microsoft.com/en-us/graph/api/resources/externalidentitiespolicy",
         "MitreTactic": [],
         "MitreTechnique": [],
