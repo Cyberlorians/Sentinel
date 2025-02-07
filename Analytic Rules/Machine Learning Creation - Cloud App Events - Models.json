@@ -1,0 +1,83 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "workspace": {
+            "type": "String"
+        }
+    },
+    "resources": [
+        {
+            "id": "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/alertRules/56499376-4117-443a-bebb-451f3b405f7e')]",
+            "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/56499376-4117-443a-bebb-451f3b405f7e')]",
+            "type": "Microsoft.OperationalInsights/workspaces/providers/alertRules",
+            "kind": "Scheduled",
+            "apiVersion": "2023-12-01-preview",
+            "properties": {
+                "displayName": "Machine Learning Creation - Cloud App Events - Models",
+                "description": "",
+                "severity": "Medium",
+                "enabled": true,
+                "query": "CloudAppEvents\n//| where ObjectName contains \"DeepSeek\"  // Filter events where ObjectName contains \"DeepSeek\"\n//| where ActionType contains \"write Deployments\" or ActionType contains \"Write ServerlessEndpoints\"  // Filter events where ActionType contains \"write\"\n| where ActionType != \"Write Workspaces\"  // Exclude events where ActionType is \"Write Workspaces\"\n| extend ActivityObjects = parse_json(ActivityObjects)  // Parse ActivityObjects as JSON\n| mv-expand ActivityObjects  // Expand the array of ActivityObjects into individual rows\n| extend RawEventData = parse_json(RawEventData)  // Parse RawEventData as JSON\n| where RawEventData.operationName matches regex \"Microsoft.MachineLearningServices/.*/write\"  // Filter events where operationName matches Microsoft.MachineLearningServices/*/write\n| extend ResourceGroupName = extract(\"/resourcegroups/([^/]+)\", 1, tostring(ActivityObjects.Id))  // Extract Resource Group Name from ActivityObjects.Id\n| extend RawJson = parse_json(RawEventData)\n// Convert the claims field to a string first, then parse it as JSON\n| extend ClaimsString = tostring(RawJson.claims)\n| extend ClaimsObj = parse_json(ClaimsString)\n// Now extract the UPN\n| extend UserName = tostring(ClaimsObj[\"http://schemas.xmlsoap.org/ws/2005/05/identity/claims/upn\"])\n| extend AIName = iff(ActivityObjects.Type == \"Resource\" and ActivityObjects.Role == \"Target object\", ActivityObjects.Name, \"\")  // Extract AI Name\n| where isnotempty(AIName)  // Only print where AIName is not empty\n| project UserName, TimeGenerated, ObjectName, ActionType, ResourceGroupName, AIName  // Select relevant fields for output\n",
+                "queryFrequency": "PT12H",
+                "queryPeriod": "PT12H",
+                "triggerOperator": "GreaterThan",
+                "triggerThreshold": 0,
+                "suppressionDuration": "PT5H",
+                "suppressionEnabled": false,
+                "startTimeUtc": null,
+                "tactics": [
+                    "Impact",
+                    "InitialAccess",
+                    "Execution"
+                ],
+                "techniques": [
+                    "T1496",
+                    "T1078",
+                    "T1059"
+                ],
+                "subTechniques": [],
+                "alertRuleTemplateName": null,
+                "incidentConfiguration": {
+                    "createIncident": true,
+                    "groupingConfiguration": {
+                        "enabled": false,
+                        "reopenClosedIncident": false,
+                        "lookbackDuration": "PT5H",
+                        "matchingMethod": "AllEntities",
+                        "groupByEntities": [],
+                        "groupByAlertDetails": [],
+                        "groupByCustomDetails": []
+                    }
+                },
+                "eventGroupingSettings": {
+                    "aggregationKind": "SingleAlert"
+                },
+                "alertDetailsOverride": null,
+                "customDetails": null,
+                "entityMappings": [
+                    {
+                        "entityType": "Account",
+                        "fieldMappings": [
+                            {
+                                "identifier": "Name",
+                                "columnName": "UserName"
+                            }
+                        ]
+                    },
+                    {
+                        "entityType": "AzureResource",
+                        "fieldMappings": [
+                            {
+                                "identifier": "ResourceId",
+                                "columnName": "AIName"
+                            }
+                        ]
+                    }
+                ],
+                "sentinelEntitiesMappings": null,
+                "templateVersion": null
+            }
+        }
+    ]
+}
