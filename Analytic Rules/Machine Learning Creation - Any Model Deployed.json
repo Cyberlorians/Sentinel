@@ -1,0 +1,92 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "workspace": {
+            "type": "String"
+        }
+    },
+    "resources": [
+        {
+            "id": "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/alertRules/152d45f6-2ace-4aee-9817-a7cc5038ff16')]",
+            "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/152d45f6-2ace-4aee-9817-a7cc5038ff16')]",
+            "type": "Microsoft.OperationalInsights/workspaces/providers/alertRules",
+            "kind": "Scheduled",
+            "apiVersion": "2023-12-01-preview",
+            "properties": {
+                "displayName": "Machine Learning Creation - Any Model Deployed",
+                "description": "Find all AI models deployed based off Azure Activity minus deepseek",
+                "severity": "Medium",
+                "enabled": true,
+                "query": "AzureActivity\n| where ResourceProviderValue == \"MICROSOFT.MACHINELEARNINGSERVICES\"  // Filter activities related to Microsoft Machine Learning Services\n| extend SCOPE = tostring(parse_json(Authorization).scope)  // Parse Authorization scope as string\n| extend subname = split(Hierarchy, \"/\")  // Split Hierarchy to extract Subscription Name and ID\n| extend ['Subscription Name'] = subname[-2], ['Subscription ID'] = subname[-1]  // Extract Subscription Name and ID\n| extend Properties = parse_json(Properties)  // Parse Properties as JSON\n| extend Properties_entity = tostring(Properties.entity)  // Cast Properties.entity to string\n| where isnotempty(Properties_entity)  // Filter activities where Properties.entity is not empty\n//| where Properties_entity contains \"deepseek\"  // Filter activities where Properties.entity contains \"deepseek\"\n| where OperationNameValue contains \"write\"  // Filter activities where OperationNameValue contains \"write\"\n| where OperationNameValue !contains \"MICROSOFT.AUTHORIZATION/ROLEASSIGNMENTS/WRITE\"  // Exclude role assignments\n| extend LLM = tostring(split(Properties_entity, \"/\")[-1])  // Extract the last segment of Properties_entity and cast it to string\n| distinct TimeGenerated, tostring(['Subscription Name']), ResourceGroup, tostring(['Subscription ID']), Caller, CallerIpAddress, OperationNameValue, LLM, _ResourceId ",
+                "queryFrequency": "PT12H",
+                "queryPeriod": "PT12H",
+                "triggerOperator": "GreaterThan",
+                "triggerThreshold": 0,
+                "suppressionDuration": "PT5H",
+                "suppressionEnabled": false,
+                "startTimeUtc": null,
+                "tactics": [
+                    "Impact",
+                    "InitialAccess",
+                    "Execution"
+                ],
+                "techniques": [
+                    "T1496",
+                    "T1078",
+                    "T1059"
+                ],
+                "subTechniques": [],
+                "alertRuleTemplateName": null,
+                "incidentConfiguration": {
+                    "createIncident": true,
+                    "groupingConfiguration": {
+                        "enabled": false,
+                        "reopenClosedIncident": false,
+                        "lookbackDuration": "PT5H",
+                        "matchingMethod": "AllEntities",
+                        "groupByEntities": [],
+                        "groupByAlertDetails": [],
+                        "groupByCustomDetails": []
+                    }
+                },
+                "eventGroupingSettings": {
+                    "aggregationKind": "SingleAlert"
+                },
+                "alertDetailsOverride": null,
+                "customDetails": {},
+                "entityMappings": [
+                    {
+                        "entityType": "Account",
+                        "fieldMappings": [
+                            {
+                                "identifier": "Name",
+                                "columnName": "Caller"
+                            }
+                        ]
+                    },
+                    {
+                        "entityType": "IP",
+                        "fieldMappings": [
+                            {
+                                "identifier": "Address",
+                                "columnName": "CallerIpAddress"
+                            }
+                        ]
+                    },
+                    {
+                        "entityType": "AzureResource",
+                        "fieldMappings": [
+                            {
+                                "identifier": "ResourceId",
+                                "columnName": "_ResourceId"
+                            }
+                        ]
+                    }
+                ],
+                "sentinelEntitiesMappings": null,
+                "templateVersion": null
+            }
+        }
+    ]
+}
