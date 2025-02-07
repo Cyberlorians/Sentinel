@@ -1,0 +1,56 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "workspace": {
+            "type": "String"
+        }
+    },
+    "resources": [
+        {
+            "id": "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/alertRules/56f74595-fb04-4605-8569-b1e442d64c22')]",
+            "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/56f74595-fb04-4605-8569-b1e442d64c22')]",
+            "type": "Microsoft.OperationalInsights/workspaces/providers/alertRules",
+            "kind": "Scheduled",
+            "apiVersion": "2023-12-01-preview",
+            "properties": {
+                "displayName": "AI Deployment - Group PIM Tracking",
+                "description": "Tracking when user elevates to member of AI permission group to deploy models",
+                "severity": "Informational",
+                "enabled": true,
+                "query": "let SensitiveGroupName = pack_array(  //Priv access group for AI tracking\n    'Azure AI'\n);\nAuditLogs \n| where TimeGenerated > ago(14d)\n| where OperationName == \"Add member to group\"\n| extend ['Initiated By'] = tostring(parse_json(tostring(InitiatedBy.app)).displayName)\n| extend ['User Added'] = tostring(TargetResources[0].userPrincipalName)\n| extend ['Group'] = tostring(parse_json(tostring(parse_json(tostring(TargetResources[0].modifiedProperties))[1].newValue)))\n| where ['Group'] in (SensitiveGroupName)\n| distinct TimeGenerated, ['Initiated By'], ['User Added'], ['Group'], OperationName, Category, AADOperationType\n| sort by TimeGenerated desc\n",
+                "queryFrequency": "PT5H",
+                "queryPeriod": "PT5H",
+                "triggerOperator": "GreaterThan",
+                "triggerThreshold": 0,
+                "suppressionDuration": "PT5H",
+                "suppressionEnabled": false,
+                "startTimeUtc": null,
+                "tactics": [],
+                "techniques": [],
+                "subTechniques": [],
+                "alertRuleTemplateName": null,
+                "incidentConfiguration": {
+                    "createIncident": true,
+                    "groupingConfiguration": {
+                        "enabled": false,
+                        "reopenClosedIncident": false,
+                        "lookbackDuration": "PT5H",
+                        "matchingMethod": "AllEntities",
+                        "groupByEntities": [],
+                        "groupByAlertDetails": [],
+                        "groupByCustomDetails": []
+                    }
+                },
+                "eventGroupingSettings": {
+                    "aggregationKind": "SingleAlert"
+                },
+                "alertDetailsOverride": null,
+                "customDetails": null,
+                "entityMappings": null,
+                "sentinelEntitiesMappings": null,
+                "templateVersion": null
+            }
+        }
+    ]
+}
