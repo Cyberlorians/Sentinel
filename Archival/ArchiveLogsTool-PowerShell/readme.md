@@ -1,5 +1,5 @@
 ## Review and Manage Data Table Retention
-**Author : Sreedhar Ande** Updated by Cyberlorians and Ken Ward.
+**Author : Sreedhar Ande** Updated by Cyberlorians.
 
 ## Download and run the PowerShell script
 
